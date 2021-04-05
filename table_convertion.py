@@ -4,32 +4,6 @@ import sqlite3
 conn = sqlite3.connect('shelf_life.sqlite3')
 cur = conn.cursor()
 
-#cur.executescript('''
-#DROP TABLE IF EXISTS Brand;
-#DROP TABLE IF EXISTS Product;
-#DROP TABLE IF EXISTS Stock;
-#
-#CREATE TABLE Brand (
-#    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-#    name TEXT UNIQUE
-#);
-#
-#CREATE TABLE Product (
-#    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-#    unique_name TEXT UNIQUE,
-#    name TEXT,
-#    brand_id INTEGER,
-#    size INTEGER,
-#    unit TEXT,
-#);
-#
-#CREATE TABLE Stock (
-#    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-#    product_id INTEGER,
-#    expiring TEXT,
-#    amount INTEGER
-#);
-#''')
 cur.execute('DROP TABLE IF EXISTS Brand')
 cur.execute('DROP TABLE IF EXISTS Product')
 cur.execute('DROP TABLE IF EXISTS Stock')
