@@ -1,0 +1,39 @@
+#+TITLE: Readme
+* Database structure
+#+BEGIN_SRC dot :file README-Database_Structure.png :cmdline -Kdot -Tpng
+digraph g {
+graph [
+rankdir = "LR"
+];
+node [
+fontsize = "16"
+shape = "ellipse"
+];
+edge [
+];
+   subgraph cluster1 { label="Stock"
+"node1" [
+label = "id (int, primary key) | <f0> pruduct_id (int) | expiring (text) | amount (int)"
+shape = "record"
+];}
+   subgraph cluster2 { label="Product"
+"node2" [
+label = " <f0> id (int, primariy key) | unique_name (text, unique) | name (text) | <f1> brand_id (int) | size (int) | unit (text)"
+shape = "record"
+];}
+    subgraph cluster3 { label="Brand"
+"node3" [
+label = "<f0> id (int, primary key) | name (text, unique)"
+shape = "record"
+];}
+"node1":f0 -> "node2":f0 [
+id = 0
+];
+"node2":f1 -> "node3":f0 [
+id = 1
+];
+}
+#+END_SRC
+
+#+RESULTS:
+[[file:README-Database_Structure.png]]
