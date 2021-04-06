@@ -1,4 +1,12 @@
-#+TITLE: README
+#+TITLE: Stockpiler (shelf-life tracker)
+Have you ever tried to buy some fancy stuff for cooking or baking and you forgot about it? Then, the next thing you realized was that it expired a long time ago. Yep, I know that feeling and I had enough. My plan to build a basic database for my stored food and to interact with this database via a web service.
+*Planned features:*
++ The database and the webservice are planned to be deployed on a Raspberry Pi (3 or 4)
++ Webservice will be written in Python using Flask
++ Expiring date will be check automatically every midnight and the following items will be collected to a 'dashboard':
+  * Already expired
+  * Will be expired within a week
++ Amount of the items will be checked automatically every midnight and those items that are categorized as important will be collected to the 'dashboard'
 
 #+caption: Database Structure
 #+attr_html: :width 50 px
