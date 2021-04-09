@@ -2,6 +2,7 @@
 """This scirpt converts csv to SQLite database format."""
 
 import sqlite3
+import datetime
 
 conn = sqlite3.connect("shelf_life.sqlite3")
 cur = conn.cursor()
@@ -31,7 +32,7 @@ cur.execute(
     """CREATE TABLE Stock (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
     product_id INTEGER,
-    expiring TEXT,
+    expiring DATE,
     amount INTEGER
     )
 """
@@ -59,6 +60,7 @@ for row in f:
 
     # fields[0]: Product.name, fields[1]: Brand.name, fields[2]: Product.size,
     # fields[3]: Product.unit, fields[4]: Stock.expiring,
+    # import datetime
     # fields[5]: Stock.amount
     cur.execute("INSERT OR IGNORE INTO Brand (name) VALUES (?)", (fields[1],))
     cur.execute("SELECT id FROM Brand WHERE name = ?", (fields[1],))
@@ -76,28 +78,30 @@ for row in f:
     cur.execute("SELECT id FROM Product WHERE unique_name = ?", (unique_name,))
     product_id = cur.fetchone()[0]
 
+
+    sep_date = fields[4].split("-")
     cur.execute(
         "SELECT amount FROM Stock WHERE product_id = ? AND expiring = ?",
-        (product_id, fields[4]),
+        (product_id, datetime.date(int(sep_date[0]), int(sep_date[1]), int(sep_date[2]))),
     )
     if cur.fetchone() is None:
         cur.execute(
             """INSERT INTO Stock (product_id, expiring, amount)
             VALUES (?, ?, ?)""",
-            (product_id, fields[4], fields[5]),
+            (product_id, datetime.date(int(int(sep_date[0])), int(sep_date[1]), int(sep_date[2])), fields[5]),
         )
         print("Created first: ", unique_name)
     else:
         cur.execute(
             "SELECT amount FROM Stock WHERE product_id = ? AND expiring = ?",
-            (product_id, fields[4]),
+            (product_id, datetime.date(int(int(sep_date[0])), int(sep_date[1]), int(sep_date[2]))),
         )
         prev_amount = cur.fetchone()[0]
         amount = int(fields[5]) + prev_amount
         cur.execute(
             """UPDATE Stock SET amount = ?
             WHERE product_id = ? AND expiring = ?""",
-            (amount, product_id, fields[4]),
+            (amount, product_id, datetime.date(int(int(sep_date[0])), int(sep_date[1]), int(sep_date[2]))),
         )
         print("Updated: ", unique_name)
     conn.commit()
