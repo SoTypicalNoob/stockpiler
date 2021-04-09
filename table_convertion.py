@@ -90,7 +90,6 @@ for row in f:
             VALUES (?, ?, ?)""",
             (product_id, datetime.date(int(int(sep_date[0])), int(sep_date[1]), int(sep_date[2])), fields[5]),
         )
-        print("Created first: ", unique_name)
     else:
         cur.execute(
             "SELECT amount FROM Stock WHERE product_id = ? AND expiring = ?",
@@ -103,7 +102,6 @@ for row in f:
             WHERE product_id = ? AND expiring = ?""",
             (amount, product_id, datetime.date(int(int(sep_date[0])), int(sep_date[1]), int(sep_date[2]))),
         )
-        print("Updated: ", unique_name)
     conn.commit()
 
 cur.close()
