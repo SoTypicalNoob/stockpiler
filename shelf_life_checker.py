@@ -4,6 +4,10 @@ Please notice that this is just a placeholder yet, not fully operational."""
 
 import sys
 import sqlite3
+import datetime
+
+
+##### Query #####
 
 
 def list_database(filename):
@@ -24,8 +28,6 @@ def list_database(filename):
         Product.brand_id = Brand.id"""
     )
     rows = cursor.fetchall()
-    for row in rows:
-        print(row)
     return rows
 
 
@@ -49,8 +51,6 @@ def list_expired_items(filename):
     )
     #WHERE date(Stock.expiring) < date('now')""")
     rows = cursor.fetchall()
-    for row in rows:
-        print(row)
     return rows
 
 def list_expires_soon(filename):
@@ -73,9 +73,116 @@ def list_expires_soon(filename):
     )
     #WHERE date(Stock.expiring) < date('now')""")
     rows = cursor.fetchall()
-    for row in rows:
-        print(row)
     return rows
+
+
+##### Add/Update/Remove #####
+
+
+def add_new_item(filename, brand_name, product_name, product_size, product_unit, stock_expiring, stock_amount):
+    """Add new item/items to the database.
+
+    Arg:
+        file: sqlite database
+        brand_name: brand of the product (e.g.: 'Bonduelle')
+        product_name: name of the product (e.g.: 'red beans')
+        product_size: number of the size of the product (e.g.: liquid product which is 100ml then: '100')
+        product_unit: the unit name of the size of the product (e.g.: ml from 100ml)
+        stock_expiring: expiring date in YYYY-MM-DD
+        stock_amount: amount of the product (e.g.: in case of you have 5 bottle, then: '5')
+
+    Returns:
+        None.
+    """
+    connect = sqlite3.connect(filename)
+    cursor = connect.cursor()
+    cursor.execute("INSERT OR IGNORE INTO Brand (name) VALUES (?)", (brand_name,))
+    cursor.execute("SELECT id FROM Brand WHERE name = ?", (brand_name,))
+    brand_id = cursor.fetchone()[0]
+
+    # unique_name is a placeholder for barcode
+    # it identifies the product and makes it ..., well, unique
+    unique_name = brand_name + product_name + product_size + product_unit
+    cursor.execute(
+        """INSERT OR IGNORE INTO Product
+        (unique_name, name, brand_id, size, unit)
+        VALUES (?, ?, ?, ?, ?)""",
+        (unique_name, product_name, brand_id, product_size, product_unit),
+    )
+    cursor.execute("SELECT id FROM Product WHERE unique_name = ?", (unique_name,))
+    product_id = cursor.fetchone()[0]
+
+
+    sep_date = stock_expiring.split("-")
+    cursor.execute(
+        "SELECT amount FROM Stock WHERE product_id = ? AND expiring = ?",
+        (product_id, datetime.date(int(sep_date[0]), int(sep_date[1]), int(sep_date[2]))),
+    )
+    if cursor.fetchone() is None:
+        cursor.execute(
+            """INSERT INTO Stock (product_id, expiring, amount)
+            VALUES (?, ?, ?)""",
+            (product_id, datetime.date(int(int(sep_date[0])), int(sep_date[1]), int(sep_date[2])), stock_amount),
+        )
+    else:
+        cursor.execute(
+            "SELECT amount FROM Stock WHERE product_id = ? AND expiring = ?",
+            (product_id, datetime.date(int(int(sep_date[0])), int(sep_date[1]), int(sep_date[2]))),
+        )
+        prev_amount = cursor.fetchone()[0]
+        amount = int(stock_amount) + prev_amount
+        cursor.execute(
+            """UPDATE Stock SET amount = ?
+            WHERE product_id = ? AND expiring = ?""",
+            (amount, product_id, datetime.date(int(int(sep_date[0])), int(sep_date[1]), int(sep_date[2]))),
+        )
+    connect.commit()
+
+
+def delete_item(filename, brand_name, product_name, product_size, product_unit, stock_expiring, stock_amount):
+    """Remove item/items from the database. (From Stock table.)
+
+    Arg:
+        file: sqlite database
+        brand_name: brand of the product (e.g.: 'Bonduelle')
+        product_name: name of the product (e.g.: 'red beans')
+        product_size: number of the size of the product (e.g.: liquid product which is 100ml then: '100')
+        product_unit: the unit name of the size of the product (e.g.: ml from 100ml)
+        stock_expiring: expiring date in YYYY-MM-DD
+        stock_amount: amount of the product (e.g.: in case of you have 5 bottle, then: '5')
+
+    Returns:
+        None.
+    """
+    connect = sqlite3.connect(filename)
+    cursor = connect.cursor()
+
+    # unique_name is a placeholder for barcode
+    # it identifies the product and makes it ..., well, unique
+    unique_name = brand_name + product_name + product_size + product_unit
+    cursor.execute("SELECT id FROM Product WHERE unique_name = ?", (unique_name,))
+    product_id = cursor.fetchone()[0]
+
+    sep_date = stock_expiring.split("-")
+    cursor.execute(
+        "SELECT amount FROM Stock WHERE product_id = ? AND expiring = ?",
+        (product_id, datetime.date(int(int(sep_date[0])), int(sep_date[1]), int(sep_date[2]))),
+    )
+    prev_amount = cursor.fetchone()[0]
+    amount = prev_amount - int(stock_amount)
+    if amount is 0:
+        cursor.execute(
+            """DELETE FROM Stock WHERE product_id = ?""",
+            (product_id,)
+        )
+    else:
+        cursor.execute(
+            """UPDATE Stock SET amount = ?
+            WHERE product_id = ? AND expiring = ?""",
+            (amount, product_id, datetime.date(int(int(sep_date[0])), int(sep_date[1]), int(sep_date[2]))),
+    )
+    connect.commit()
+
 
 def main(filename):
     """Starts list_expired_item() in case this was started as a script."""
