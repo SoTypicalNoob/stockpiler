@@ -1,0 +1,17 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Home page</title>
+  </head>
+  <body>
+    <h1>Dashboard</h1>
+    <h2>Expired Items</h2>
+    {% for row in expired %}
+    <p>{{row}}</p>
+    {% endfor %}
+    <h2>Expires Soon</h2>
+    {% for row in soon_expire %}
+    <p>{{row}}</p>
+    {% endfor %}
+    </body>
+  </html>
