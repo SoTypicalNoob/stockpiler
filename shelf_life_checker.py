@@ -7,7 +7,34 @@ import sqlite3
 import datetime
 
 
-##### Query #####
+# Query
+
+
+def search_item(filename, product_name):
+    """Search for an item.
+
+    Arg:
+        file: sqlite database
+        brand_name: brand of the product (e.g.: 'Bonduelle')
+        product_name: name of the product (e.g.: 'red beans')
+
+    Returns:
+        None.
+    """
+    connect = sqlite3.connect(filename)
+    cursor = connect.cursor()
+
+    # unique_name is a placeholder for barcode
+    # it identifies the product and makes it ..., well, unique
+    # cursor.execute("SELECT id FROM Brand WHERE name = ?", (brand_name,))
+    # brand_id = cursor.fetchone()[0]
+    cursor.execute("SELECT id FROM Product WHERE name = ?", (product_name,))
+    products = cursor.fetchall()
+    for product in products:
+        cursor.execute("SELECT * FROM Stock WHERE product_id = ?", (product[0],))
+        list_of_products = cursor.fetchall()
+        for item in list_of_products:
+            print(item)
 
 
 def list_database(filename):
@@ -49,9 +76,9 @@ def list_expired_items(filename):
         Product.brand_id = Brand.id
         WHERE date(Stock.expiring) < date('now')"""
     )
-    #WHERE date(Stock.expiring) < date('now')""")
     rows = cursor.fetchall()
     return rows
+
 
 def list_expires_soon(filename):
     """Lists of those items that expires within a week.
@@ -71,12 +98,11 @@ def list_expires_soon(filename):
         Product.brand_id = Brand.id
         WHERE date(Stock.expiring) BETWEEN date('now') AND date('now', '+1 month')"""
     )
-    #WHERE date(Stock.expiring) < date('now')""")
     rows = cursor.fetchall()
     return rows
 
 
-##### Add/Update/Remove #####
+# Add/Update/Remove
 
 
 def add_new_item(filename, brand_name, product_name, product_size, product_unit, stock_expiring, stock_amount):
@@ -84,12 +110,17 @@ def add_new_item(filename, brand_name, product_name, product_size, product_unit,
 
     Arg:
         file: sqlite database
-        brand_name: brand of the product (e.g.: 'Bonduelle')
-        product_name: name of the product (e.g.: 'red beans')
-        product_size: number of the size of the product (e.g.: liquid product which is 100ml then: '100')
-        product_unit: the unit name of the size of the product (e.g.: ml from 100ml)
+        brand_name: brand of the product
+            (e.g.: 'Bonduelle')
+        product_name: name of the product
+            (e.g.: 'red beans')
+        product_size: number of the size of the product
+            (e.g.: liquid product which is 100ml then: '100')
+        product_unit: the unit name of the size of the product
+            (e.g.: ml from 100ml)
         stock_expiring: expiring date in YYYY-MM-DD
-        stock_amount: amount of the product (e.g.: in case of you have 5 bottle, then: '5')
+        stock_amount: amount of the product
+            (e.g.: in case of you have 5 bottle, then: '5')
 
     Returns:
         None.
@@ -111,7 +142,6 @@ def add_new_item(filename, brand_name, product_name, product_size, product_unit,
     )
     cursor.execute("SELECT id FROM Product WHERE unique_name = ?", (unique_name,))
     product_id = cursor.fetchone()[0]
-
 
     sep_date = stock_expiring.split("-")
     cursor.execute(
@@ -144,12 +174,17 @@ def delete_item(filename, brand_name, product_name, product_size, product_unit, 
 
     Arg:
         file: sqlite database
-        brand_name: brand of the product (e.g.: 'Bonduelle')
-        product_name: name of the product (e.g.: 'red beans')
-        product_size: number of the size of the product (e.g.: liquid product which is 100ml then: '100')
-        product_unit: the unit name of the size of the product (e.g.: ml from 100ml)
+        brand_name: brand of the product
+            (e.g.: 'Bonduelle')
+        product_name: name of the product
+            (e.g.: 'red beans')
+        product_size: number of the size of the product
+            (e.g.: liquid product which is 100ml then: '100')
+        product_unit: the unit name of the size of the product
+            (e.g.: ml from 100ml)
         stock_expiring: expiring date in YYYY-MM-DD
-        stock_amount: amount of the product (e.g.: in case of you have 5 bottle, then: '5')
+        stock_amount: amount of the product
+            (e.g.: in case of you have 5 bottle, then: '5')
 
     Returns:
         None.
@@ -170,7 +205,7 @@ def delete_item(filename, brand_name, product_name, product_size, product_unit, 
     )
     prev_amount = cursor.fetchone()[0]
     amount = prev_amount - int(stock_amount)
-    if amount is 0:
+    if amount == 0:
         cursor.execute(
             """DELETE FROM Stock WHERE product_id = ?""",
             (product_id,)
