@@ -24,17 +24,22 @@ def search_item(filename, product_name):
     connect = sqlite3.connect(filename)
     cursor = connect.cursor()
 
+    product_name = "%" + product_name + "%"
+
     # unique_name is a placeholder for barcode
     # it identifies the product and makes it ..., well, unique
     # cursor.execute("SELECT id FROM Brand WHERE name = ?", (brand_name,))
     # brand_id = cursor.fetchone()[0]
-    cursor.execute("SELECT id FROM Product WHERE name = ?", (product_name,))
-    products = cursor.fetchall()
-    for product in products:
-        cursor.execute("SELECT * FROM Stock WHERE product_id = ?", (product[0],))
-        list_of_products = cursor.fetchall()
-        for item in list_of_products:
-            print(item)
+    cursor.execute(
+        """SELECT Brand.name, Product.name, Stock.expiring, Product.unique_name
+        FROM Stock JOIN Product JOIN Brand ON
+        Stock.product_id = Product.id AND
+        Product.brand_id = Brand.id
+        WHERE Product.name LIKE ? """, (product_name,)
+    )
+    rows = cursor.fetchall()
+    for row in rows:
+        print(row)
 
 
 def list_database(filename):
@@ -96,7 +101,8 @@ def list_expires_soon(filename):
         FROM Stock JOIN Product JOIN Brand ON
         Stock.product_id = Product.id AND
         Product.brand_id = Brand.id
-        WHERE date(Stock.expiring) BETWEEN date('now') AND date('now', '+1 month')"""
+        WHERE date(Stock.expiring) BETWEEN date('now')
+        AND date('now', '+1 month')"""
     )
     rows = cursor.fetchall()
     return rows
@@ -215,7 +221,7 @@ def delete_item(filename, brand_name, product_name, product_size, product_unit, 
             """UPDATE Stock SET amount = ?
             WHERE product_id = ? AND expiring = ?""",
             (amount, product_id, datetime.date(int(int(sep_date[0])), int(sep_date[1]), int(sep_date[2]))),
-    )
+        )
     connect.commit()
 
 
