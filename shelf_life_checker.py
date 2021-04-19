@@ -31,15 +31,14 @@ def search_item(filename, product_name):
     # cursor.execute("SELECT id FROM Brand WHERE name = ?", (brand_name,))
     # brand_id = cursor.fetchone()[0]
     cursor.execute(
-        """SELECT Brand.name, Product.name, Stock.expiring, Product.unique_name
+        """SELECT Brand.name, Product.name, Stock.expiring, Product.unique_name, Stock.amount
         FROM Stock JOIN Product JOIN Brand ON
         Stock.product_id = Product.id AND
         Product.brand_id = Brand.id
         WHERE Product.name LIKE ? """, (product_name,)
     )
     rows = cursor.fetchall()
-    for row in rows:
-        print(row)
+    return rows
 
 
 def list_database(filename):
@@ -175,7 +174,7 @@ def add_new_item(filename, brand_name, product_name, product_size, product_unit,
     connect.commit()
 
 
-def delete_item(filename, brand_name, product_name, product_size, product_unit, stock_expiring, stock_amount):
+def delete_item(filename, unique_name, stock_expiring, stock_amount):
     """Remove item/items from the database. (From Stock table.)
 
     Arg:
@@ -200,7 +199,6 @@ def delete_item(filename, brand_name, product_name, product_size, product_unit, 
 
     # unique_name is a placeholder for barcode
     # it identifies the product and makes it ..., well, unique
-    unique_name = brand_name + product_name + product_size + product_unit
     cursor.execute("SELECT id FROM Product WHERE unique_name = ?", (unique_name,))
     product_id = cursor.fetchone()[0]
 
