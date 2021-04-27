@@ -19,22 +19,19 @@ def create_database(file):
     cur.execute("DROP TABLE IF EXISTS Stock")
     cur.execute("""CREATE TABLE Brand (
         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-        name TEXT UNIQUE)"""
-        )
+        name TEXT UNIQUE)""")
     cur.execute("""CREATE TABLE Product (
         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
         barcode INTEGER UNIQUE,
         name TEXT,
         brand_id INTEGER,
         size INTEGER,
-        unit TEXT)"""
-        )
+        unit TEXT)""")
     cur.execute("""CREATE TABLE Stock (
         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
         product_id INTEGER,
         expiring DATE,
-        amount INTEGER)"""
-        )
+        amount INTEGER)""")
 
 
 ##### Query #####
@@ -79,9 +76,9 @@ def list_expired_items(filename):
         Product.brand_id = Brand.id
         WHERE date(Stock.expiring) < date('now')"""
     )
-    #WHERE date(Stock.expiring) < date('now')""")
     rows = cursor.fetchall()
     return rows
+
 
 def list_expires_soon(filename):
     """Lists of those items that expires within a week.
@@ -101,19 +98,37 @@ def list_expires_soon(filename):
         Product.brand_id = Brand.id
         WHERE date(Stock.expiring) BETWEEN date('now') AND date('now', '+1 month')"""
     )
-    #WHERE date(Stock.expiring) < date('now')""")
     rows = cursor.fetchall()
     return rows
+
+
+def check_item_existence(filename, barcode):
+    """Check if an item is already in the database or not.
+
+    Arg:
+        filename: sqlite database
+        barcode: Barcode of the product
+
+    Returns:
+        True/False, Details of the item.
+    """
+    connect = sqlite3.connect(filename)
+    cursor = connect.cursor()
+    # cursor.execute("SELECT id FROM Brand WHERE name = ?", (brand_name,))
+    cursor.execute("SELECT Brand.name, Product.name, Product.size, Product.unit FROM Product JOIN Brand ON Product.brand_id = Brand.id WHERE Product.barcode = ?", (barcode,))
+    row = cursor.fetchone()
+    return row
 
 
 ##### Add/Update/Remove #####
 
 
-def add_new_item(filename, brand_name, product_name, product_size, product_unit, stock_expiring, stock_amount):
+def add_new_item(filename, barcode, brand_name, product_name, product_size, product_unit, stock_expiring, stock_amount):
     """Add new item/items to the database.
 
     Arg:
-        file: sqlite database
+        filename: sqlite database
+        barcode: barcode of the product
         brand_name: brand of the product (e.g.: 'Bonduelle')
         product_name: name of the product (e.g.: 'red beans')
         product_size: number of the size of the product (e.g.: liquid product which is 100ml then: '100')
@@ -130,18 +145,14 @@ def add_new_item(filename, brand_name, product_name, product_size, product_unit,
     cursor.execute("SELECT id FROM Brand WHERE name = ?", (brand_name,))
     brand_id = cursor.fetchone()[0]
 
-    # unique_name is a placeholder for barcode
-    # it identifies the product and makes it ..., well, unique
-    unique_name = brand_name + product_name + product_size + product_unit
     cursor.execute(
         """INSERT OR IGNORE INTO Product
-        (unique_name, name, brand_id, size, unit)
+        (barcode, name, brand_id, size, unit)
         VALUES (?, ?, ?, ?, ?)""",
-        (unique_name, product_name, brand_id, product_size, product_unit),
+        (barcode, product_name, brand_id, product_size, product_unit),
     )
-    cursor.execute("SELECT id FROM Product WHERE unique_name = ?", (unique_name,))
+    cursor.execute("SELECT id FROM Product WHERE barcode = ?", (barcode,))
     product_id = cursor.fetchone()[0]
-
 
     sep_date = stock_expiring.split("-")
     cursor.execute(
@@ -246,8 +257,10 @@ def main(filename):
     if os.path.isfile(filename) is not True:
         print("File does not exist exist. \nCreating new file.")
         create_database(filename)
+
     def menu():
         print("[1] Add new item")
+        print("[2] Check if item existing")
         print("[0] Exit")
     menu()
     try:
@@ -258,8 +271,30 @@ def main(filename):
     while option != 0:
         if option == 1:
             barcode = barcode_scanner()
-            print(barcode)
+            print("Barcode was: ", barcode)
+            row = check_item_existence(filename, barcode)
+            if row is None:
+                brand_name = input("Enter the name of the brand: ")
+                product_name = input("Enter the product: ")
+                product_size = input("Enter the size of the product: ")
+                product_unit = input("Enter the unit of the size: ")
+                stock_expiring = input("Enter expiring date: ")
+                stock_amount = input("Enter the amount of the product: ")
+                pass
+            else:
+                brand_name = row[0]
+                product_name = row[1]
+                product_size = row[2]
+                product_unit = row[3]
+                stock_expiring = input("Enter expiring date: ")
+                stock_amount = input("Enter the amount of the product: ")
+                pass
+            add_new_item(filename, barcode, brand_name, product_name, product_size, product_unit, stock_expiring, stock_amount)
             pass
+        elif option == 2:
+            barcode = barcode_scanner()
+            row = check_item_existence(filename, barcode)
+            print(row)
         else:
             print("Invalid option.")
 
