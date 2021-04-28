@@ -41,7 +41,7 @@ def list_database(filename):
     """Lists the whole database into STD Output
 
     Arg:
-        file: sqlite database
+        filename: sqlite database
 
     Returns:
         Prints out the whole database
@@ -49,7 +49,7 @@ def list_database(filename):
     connect = sqlite3.connect(filename)
     cursor = connect.cursor()
     cursor.execute(
-        """SELECT Brand.name, Product.name, Stock.expiring
+        """SELECT Brand.name, Product.name, Stock.expiring, Product.size, Product.unit, Stock.amount
         FROM Stock JOIN Product JOIN Brand ON
         Stock.product_id = Product.id AND
         Product.brand_id = Brand.id"""
@@ -70,7 +70,7 @@ def list_expired_items(filename):
     connect = sqlite3.connect(filename)
     cursor = connect.cursor()
     cursor.execute(
-        """SELECT Brand.name, Product.name, Stock.expiring
+        """SELECT Brand.name, Product.name, Stock.expiring, Stock.amount
         FROM Stock JOIN Product JOIN Brand ON
         Stock.product_id = Product.id AND
         Product.brand_id = Brand.id
@@ -92,7 +92,7 @@ def list_expires_soon(filename):
     connect = sqlite3.connect(filename)
     cursor = connect.cursor()
     cursor.execute(
-        """SELECT Brand.name, Product.name, Stock.expiring
+        """SELECT Brand.name, Product.name, Stock.expiring, Stock.amount
         FROM Stock JOIN Product JOIN Brand ON
         Stock.product_id = Product.id AND
         Product.brand_id = Brand.id
@@ -180,11 +180,12 @@ def add_new_item(filename, barcode, brand_name, product_name, product_size, prod
     connect.commit()
 
 
-def delete_item(filename, brand_name, product_name, product_size, product_unit, stock_expiring, stock_amount):
+def delete_item(filename, barcode, stock_expiring, stock_amount):
     """Remove item/items from the database. (From Stock table.)
 
     Arg:
         file: sqlite database
+        barcode: Barcode of the product
         brand_name: brand of the product (e.g.: 'Bonduelle')
         product_name: name of the product (e.g.: 'red beans')
         product_size: number of the size of the product (e.g.: liquid product which is 100ml then: '100')
@@ -198,10 +199,7 @@ def delete_item(filename, brand_name, product_name, product_size, product_unit, 
     connect = sqlite3.connect(filename)
     cursor = connect.cursor()
 
-    # unique_name is a placeholder for barcode
-    # it identifies the product and makes it ..., well, unique
-    unique_name = brand_name + product_name + product_size + product_unit
-    cursor.execute("SELECT id FROM Product WHERE unique_name = ?", (unique_name,))
+    cursor.execute("SELECT id FROM Product WHERE barcode = ?", (barcode,))
     product_id = cursor.fetchone()[0]
 
     sep_date = stock_expiring.split("-")
@@ -260,7 +258,8 @@ def main(filename):
 
     def menu():
         print("[1] Add new item")
-        print("[2] Check if item existing")
+        print("[2] Delete and item based on barcode")
+        print("[3] List all items")
         print("[0] Exit")
     menu()
     try:
@@ -272,8 +271,8 @@ def main(filename):
         if option == 1:
             barcode = barcode_scanner()
             print("Barcode was: ", barcode)
-            row = check_item_existence(filename, barcode)
-            if row is None:
+            item = check_item_existence(filename, barcode)
+            if item is None:
                 brand_name = input("Enter the name of the brand: ")
                 product_name = input("Enter the product: ")
                 product_size = input("Enter the size of the product: ")
@@ -282,10 +281,10 @@ def main(filename):
                 stock_amount = input("Enter the amount of the product: ")
                 pass
             else:
-                brand_name = row[0]
-                product_name = row[1]
-                product_size = row[2]
-                product_unit = row[3]
+                brand_name = item[0]
+                product_name = item[1]
+                product_size = item[2]
+                product_unit = item[3]
                 stock_expiring = input("Enter expiring date: ")
                 stock_amount = input("Enter the amount of the product: ")
                 pass
@@ -293,8 +292,22 @@ def main(filename):
             pass
         elif option == 2:
             barcode = barcode_scanner()
-            row = check_item_existence(filename, barcode)
-            print(row)
+            print("Barcode was: ", barcode)
+            item = check_item_existence(filename, barcode)
+            if item is None:
+                print("Product is not available in the database.")
+                pass
+            else:
+                stock_expiring = input("Enter expiring date: ")
+                stock_amount = input("Enter the amount of the product: ")
+                pass
+            delete_item(filename, barcode, stock_expiring, stock_amount)
+            pass
+        elif option == 3:
+            rows = list_database(filename)
+            for row in rows:
+                print(row)
+            pass
         else:
             print("Invalid option.")
 
