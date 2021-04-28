@@ -6,12 +6,38 @@
   <body>
     <h1>Dashboard</h1>
     <h2>Expired Items</h2>
-    {% for row in expired %}
-    <p>{{row}}</p>
+    <table border=1>
+      <tr>
+        <th>Brand</th>
+        <th>Product</th>
+        <th>Expiring Date</th>
+        <th>Amount</th>
+      </tr>
+      {% for row in expired %}
+      <tr>
+        <th>{{row[0]}}</th>
+        <th>{{row[1]}}</th>
+        <th>{{row[2]}}</th>
+        <th>{{row[3]}}</th>
+      </tr>
     {% endfor %}
+    </table>
     <h2>Expires Soon</h2>
+    <table border=1>
+      <tr>
+        <th>Brand</th>
+        <th>Product</th>
+        <th>Expiring Date</th>
+        <th>Amount</th>
+      </tr>
     {% for row in soon_expire %}
-    <p>{{row}}</p>
+      <tr>
+        <th>{{row[0]}}</th>
+        <th>{{row[1]}}</th>
+        <th>{{row[2]}}</th>
+        <th>{{row[3]}}</th>
+      </tr>
     {% endfor %}
+    </table>
     </body>
   </html>
