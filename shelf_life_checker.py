@@ -123,7 +123,14 @@ def check_item_existence(filename, barcode):
 ##### Add/Update/Remove #####
 
 
-def add_new_item(filename, barcode, brand_name, product_name, product_size, product_unit, stock_expiring, stock_amount):
+def add_new_item(filename,
+                 barcode,
+                 brand_name,
+                 product_name,
+                 product_size,
+                 product_unit,
+                 stock_expiring,
+                 stock_amount):
     """Add new item/items to the database.
 
     Arg:
