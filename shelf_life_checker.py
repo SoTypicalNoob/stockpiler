@@ -307,8 +307,8 @@ def main(filename):
             else:
                 stock_expiring = input("Enter expiring date: ")
                 stock_amount = input("Enter the amount of the product: ")
+                delete_item(filename, barcode, stock_expiring, stock_amount)
                 pass
-            delete_item(filename, barcode, stock_expiring, stock_amount)
             pass
         elif option == 3:
             rows = list_database(filename)
