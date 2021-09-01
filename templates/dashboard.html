@@ -5,6 +5,7 @@
   </head>
   <body>
     <h1>Dashboard</h1>
+    
     <h2>Expired Items</h2>
     <table border=1>
       <tr>
@@ -22,6 +23,7 @@
       </tr>
     {% endfor %}
     </table>
+
     <h2>Expires Soon</h2>
     <table border=1>
       <tr>
@@ -39,5 +41,24 @@
       </tr>
     {% endfor %}
     </table>
+
+    <h2>All item</h2>
+    <table border=1>
+      <tr>
+        <th><b>Brand</b></th>
+        <th><b>Product</b></th>
+        <th><b>Expiring Date</b></th>
+        <th><b>Amount</b></th>
+      </tr>
+    {% for row in full_list %}
+      <tr>
+        <th>{{row[0]}}</th>
+        <th>{{row[1]}}</th>
+        <th>{{row[2]}}</th>
+        <th>{{row[3]}}</th>
+      </tr>
+    {% endfor %}
+    </table>
+
     </body>
   </html>
