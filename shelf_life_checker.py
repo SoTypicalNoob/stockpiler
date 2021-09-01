@@ -50,7 +50,7 @@ def list_database(filename):
         """SELECT Brand.name, Product.name, Stock.expiring, Product.size, Product.unit, Stock.amount
         FROM Stock JOIN Product JOIN Brand ON
         Stock.product_id = Product.id AND
-        Product.brand_id = Brand.id"""
+        Product.brand_id = Brand.id ORDER BY Stock.expiring"""
     )
     rows = cursor.fetchall()
     return rows
@@ -72,7 +72,7 @@ def list_expired_items(filename):
         FROM Stock JOIN Product JOIN Brand ON
         Stock.product_id = Product.id AND
         Product.brand_id = Brand.id
-        WHERE date(Stock.expiring) < date('now')"""
+        WHERE date(Stock.expiring) < date('now') ORDER BY Stock.expiring"""
     )
     rows = cursor.fetchall()
     return rows
@@ -94,7 +94,8 @@ def list_expires_soon(filename):
         FROM Stock JOIN Product JOIN Brand ON
         Stock.product_id = Product.id AND
         Product.brand_id = Brand.id
-        WHERE date(Stock.expiring) BETWEEN date('now') AND date('now', '+1 month')"""
+        WHERE date(Stock.expiring) BETWEEN date('now') AND date('now', '+1 month')
+        ORDER BY Stock.expiring"""
     )
     rows = cursor.fetchall()
     return rows
