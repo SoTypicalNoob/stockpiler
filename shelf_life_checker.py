@@ -6,8 +6,6 @@ import os
 import sys
 import sqlite3
 import datetime
-import cv2
-from pyzbar import pyzbar
 
 
 def create_database(file):
@@ -231,6 +229,8 @@ def delete_item(filename, barcode, stock_expiring, stock_amount):
 
 
 def read_barcodes(frame):
+    import cv2
+    from pyzbar import pyzbar
     barcode_text = ""
     barcodes = pyzbar.decode(frame)
     for barcode in barcodes:
@@ -241,6 +241,7 @@ def read_barcodes(frame):
 
 
 def barcode_scanner():
+    import cv2
     camera = cv2.VideoCapture(0)
     ret, frame = camera.read()
     while ret:
@@ -284,7 +285,7 @@ def main(filename):
                 product_name = input("Enter the product: ")
                 product_size = input("Enter the size of the product: ")
                 product_unit = input("Enter the unit of the size: ")
-                stock_expiring = input("Enter expiring date (YYYY-MM-DD): ")
+                stock_expiring = input("Enter expiring date: ")
                 stock_amount = input("Enter the amount of the product: ")
                 pass
             else:
@@ -292,7 +293,7 @@ def main(filename):
                 product_name = item[1]
                 product_size = item[2]
                 product_unit = item[3]
-                stock_expiring = input("Enter expiring date (YYYY-MM-DD): ")
+                stock_expiring = input("Enter expiring date: ")
                 stock_amount = input("Enter the amount of the product: ")
                 pass
             add_new_item(filename, barcode, brand_name, product_name, product_size, product_unit, stock_expiring, stock_amount)
@@ -305,7 +306,7 @@ def main(filename):
                 print("Product is not available in the database.")
                 pass
             else:
-                stock_expiring = input("Enter expiring date (YYYY-MM-DD): ")
+                stock_expiring = input("Enter expiring date: ")
                 stock_amount = input("Enter the amount of the product: ")
                 delete_item(filename, barcode, stock_expiring, stock_amount)
                 pass
