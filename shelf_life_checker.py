@@ -217,8 +217,8 @@ def delete_item(filename, barcode, stock_expiring, stock_amount):
     amount = prev_amount - int(stock_amount)
     if amount == 0:
         cursor.execute(
-            """DELETE FROM Stock WHERE product_id = ?""",
-            (product_id,)
+            """DELETE FROM Stock WHERE product_id = ? AND expiring = ?""",
+            (product_id, datetime.date(int(int(sep_date[0])), int(sep_date[1]), int(sep_date[2]))),
         )
     else:
         cursor.execute(
