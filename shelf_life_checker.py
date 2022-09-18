@@ -6,7 +6,10 @@ import os
 import sys
 import sqlite3
 import datetime
-
+# For barcode scanning:
+# read_barcodes
+import cv2
+from pyzbar import pyzbar
 
 def create_database(file):
     conn = sqlite3.connect(file)
@@ -230,8 +233,6 @@ def delete_item(filename, barcode, stock_expiring, stock_amount):
 
 
 def read_barcodes(frame):
-    import cv2
-    from pyzbar import pyzbar
     barcode_text = ""
     barcodes = pyzbar.decode(frame)
     for barcode in barcodes:
@@ -242,11 +243,19 @@ def read_barcodes(frame):
 
 
 def barcode_scanner():
-    import cv2
-    camera = cv2.VideoCapture(0)
+    camera = cv2.VideoCapture(2)
     ret, frame = camera.read()
+
+    def rescale_frame(frame, percent=30):
+        scale_percent = 30
+        width = int(frame.shape[1] * scale_percent / 100)
+        height = int(frame.shape[0] * scale_percent / 100)
+        dim = (width, height)
+        return cv2.resize(frame, dim, interpolation = cv2.INTER_AREA)
+
     while ret:
         ret, frame = camera.read()
+        frame = rescale_frame(frame, percent=30)
         frame, result_text = read_barcodes(frame)
         cv2.imshow('Barcode reader', frame)
         if cv2.waitKey(1) & 0xFF == 27:
